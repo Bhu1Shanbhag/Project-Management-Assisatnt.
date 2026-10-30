@@ -1,0 +1,69 @@
+# AI Project Intelligence Platform — Backend Dependencies
+#
+# REQUIRES PYTHON 3.12.x — do not use 3.13 or 3.14.
+#   chromadb 0.5.5 pins numpy<2.0.0, so the resolver picks numpy 1.26.4, and
+#   1.26.4 is the last numpy publishing wheels for Python <=3.12. On 3.13+ pip
+#   compiles numpy from source and that build mis-detects longdouble, so
+#   `import numpy` dies with:
+#       OverflowError: cannot convert longdouble infinity to integer
+#   Lifting this restriction requires upgrading chromadb past the numpy<2 cap.
+#
+# Install (from the repo root):
+#   py -3.12 -m venv .venv
+#   .venv\Scripts\Activate.ps1
+#   python -m pip install -r backend\requirements.txt
+#
+# Prefer `python -m pip` over the pip.exe shim — the shim hardcodes an absolute
+# interpreter path at creation time and breaks if the venv is copied or its
+# parent folder is renamed.
+#
+# Versions below are pinned to a set verified working on Python 3.12.10.
+
+# Web Framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# Microsoft Agent Framework (AutoGen)
+# Pinned: the code targets the 0.4+ API, but an unbounded >=0.4.0 range already
+# resolves to 0.7.x and would drift into future breaking releases.
+autogen-agentchat==0.7.5
+autogen-ext[openai]==0.7.5
+autogen-core==0.7.5
+
+# OpenAI SDK
+# Pinned: >=1.40.0 resolves straight across the 1.x -> 2.x major boundary.
+openai==2.51.0
+
+# Database — MongoDB (async)
+motor==3.5.1
+pymongo==4.8.0
+certifi>=2024.2.2  # CA bundle for MongoDB Atlas (mongodb+srv) TLS — deliberately
+                   # left unpinned so root certificates stay current
+
+# Vector Database (RAG)
+chromadb==0.5.5
+numpy==1.26.4  # transitive via chromadb; pinned explicitly because this is the
+               # dependency that dictates the Python 3.12 requirement above
+
+# Auth & Security
+python-jose[cryptography]==3.5.0  # 3.3.0 carries CVE-2024-33663 (algorithm
+                                  # confusion) and CVE-2024-33664 (JWT bomb DoS)
+bcrypt==5.0.0
+
+# File Upload & Parsing (PDF, DOCX, TXT)
+python-multipart==0.0.9
+python-docx==1.1.2
+PyMuPDF==1.28.0
+
+# GitHub Integration
+PyGithub==2.3.0
+
+# Configuration & Validation
+python-dotenv==1.0.1
+pydantic-settings==2.14.2
+email-validator==2.3.0  # required by pydantic.EmailStr in app/api.py
+
+# FastMCP (Optional Model Context Protocol server tools)
+# Disabled: nothing under backend/ imports fastmcp, and it is the sole reason
+# the `dotenv` stub package gets pulled in. Re-enable when MCP tools are wired up.
+# fastmcp==2.2.0
